@@ -1,78 +1,90 @@
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import React from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import UserAvatar from "./UserAvatar";
-import { Link } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Calendar, MessageSquare, Users } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
-interface ProjectCardProps {
-  id: number;
+export interface ProjectCardProps {
+  id: string;
   title: string;
   description: string;
-  progress: number;
-  category: string;
-  members: { id: number; name: string; avatar?: string }[];
+  dueDate?: string;
+  members: {
+    id: string;
+    name: string;
+    avatar?: string;
+  }[];
+  commentsCount: number;
+  tasksCount: number;
+  completedTasksCount: number;
+  onClick?: () => void;
 }
 
-export default function ProjectCard({
-  id,
-  title,
-  description,
-  progress,
-  category,
-  members,
-}: ProjectCardProps) {
+const ProjectCard: React.FC<ProjectCardProps> = ({ 
+  id, 
+  title, 
+  description, 
+  dueDate, 
+  members, 
+  commentsCount, 
+  tasksCount, 
+  completedTasksCount,
+  onClick
+}) => {
   return (
-    <Link to={`/project/${id}`}>
-      <Card className="card-hover">
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-semibold text-lg">{title}</h3>
-              <Badge variant="secondary" className="mt-1">
-                {category}
-              </Badge>
-            </div>
+    <Card className="hover:shadow-md transition-shadow" onClick={onClick}>
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-xl">{title}</CardTitle>
+          <Badge variant={completedTasksCount === tasksCount ? "default" : "secondary"}>
+            {completedTasksCount}/{tasksCount} tasks
+          </Badge>
+        </div>
+        <CardDescription className="text-sm line-clamp-2">{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {dueDate && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+            <Calendar className="h-4 w-4" />
+            <span>Due {new Date(dueDate).toLocaleDateString()}</span>
           </div>
-        </CardHeader>
+        )}
         
-        <CardContent className="pb-3">
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-            {description}
-          </p>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress</span>
-              <span className="font-medium">{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
+        <div className="flex justify-between items-center">
+          <div className="flex -space-x-2">
+            {members.slice(0, 3).map((member) => (
+              <Avatar key={member.id} className="border-2 border-background h-8 w-8">
+                <AvatarImage src={member.avatar} alt={member.name} />
+                <AvatarFallback className="text-xs">
+                  {member.name.split(' ').map(name => name[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+            {members.length > 3 && (
+              <Avatar className="border-2 border-background bg-muted h-8 w-8">
+                <AvatarFallback className="text-xs">+{members.length - 3}</AvatarFallback>
+              </Avatar>
+            )}
           </div>
-        </CardContent>
-        
-        <CardFooter className="pt-0">
-          <div className="flex justify-between items-center w-full">
-            <div className="flex -space-x-2">
-              {members.slice(0, 3).map((member) => (
-                <UserAvatar
-                  key={member.id}
-                  name={member.name}
-                  src={member.avatar}
-                  size="sm"
-                />
-              ))}
-              {members.length > 3 && (
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs">
-                  +{members.length - 3}
-                </div>
-              )}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <MessageSquare className="h-4 w-4" />
+              <span>{commentsCount}</span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              Updated 2h ago
-            </span>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span>{members.length}</span>
+            </div>
           </div>
-        </CardFooter>
-      </Card>
-    </Link>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button variant="outline" size="sm" className="w-full">View Project</Button>
+      </CardFooter>
+    </Card>
   );
-}
+};
+
+export default ProjectCard;
